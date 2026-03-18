@@ -1,5 +1,5 @@
 services:
-  postgres:
+  chatdb:
     image: postgres:16
     restart: unless-stopped
     environment:
@@ -24,7 +24,7 @@ services:
       - uploads_data:/uploads
       - ./widget/dist:/widget-dist:ro
     depends_on:
-      postgres:
+      chatdb:
         condition: service_healthy
     networks:
       - default
