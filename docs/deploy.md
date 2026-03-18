@@ -11,6 +11,23 @@ No separate frontend hosting needed.
 
 ---
 
+## VPS Access
+
+```bash
+ssh root@187.124.160.50
+```
+
+> **⚠️ IMPORTANT — Shared VPS**
+> This VPS hosts other active projects. Before making any system-level changes:
+> - **Do NOT modify** existing Nginx or Caddy configs that belong to other projects
+> - **Do NOT touch** existing SSL certificates (Let's Encrypt or otherwise)
+> - **Do NOT change** ports already in use by other services
+> - Only add a **new** Nginx server block in a new file under `sites-available/`
+> - Always run `sudo nginx -t` before reloading Nginx to catch config errors
+> - When in doubt, check `docker ps` and `ss -tlnp` to see what's already running
+
+---
+
 ## One-time VPS Setup
 
 ### 1. Install Docker
@@ -30,7 +47,7 @@ sudo apt update && sudo apt install -y nginx certbot python3-certbot-nginx
 ### 3. Add your SSH key to the VPS (from your local machine)
 
 ```bash
-ssh-copy-id user@your-vps-ip
+ssh-copy-id root@187.124.160.50
 ```
 
 ---
@@ -39,21 +56,17 @@ ssh-copy-id user@your-vps-ip
 
 ### 4. Create DNS A record
 
-In your domain registrar or DNS provider:
+The DNS A record for `live-chat.activebrands.cloud` → `187.124.160.50` has already been created.
 
-| Type | Name | Value |
-|---|---|---|
-| A | `chat` | `<your VPS IP>` |
-
-Wait for propagation (usually a few minutes).
+> If you ever need to verify: `dig live-chat.activebrands.cloud` should resolve to `187.124.160.50`.
 
 ### 5. Configure Nginx
 
-Create `/etc/nginx/sites-available/chat`:
+Create `/etc/nginx/sites-available/ob-live-chat`:
 
 ```nginx
 server {
-    server_name chat.yourdomain.com;
+    server_name live-chat.activebrands.cloud;
 
     location / {
         proxy_pass http://localhost:3000;
@@ -74,14 +87,14 @@ server {
 ```
 
 ```bash
-sudo ln -s /etc/nginx/sites-available/chat /etc/nginx/sites-enabled/
+sudo ln -s /etc/nginx/sites-available/ob-live-chat /etc/nginx/sites-enabled/
 sudo nginx -t && sudo systemctl reload nginx
 ```
 
 ### 6. Issue SSL certificate
 
 ```bash
-sudo certbot --nginx -d chat.yourdomain.com
+sudo certbot --nginx -d live-chat.activebrands.cloud
 ```
 
 Certbot auto-configures Nginx for HTTPS and sets up auto-renewal.
@@ -106,7 +119,7 @@ git push -u origin main
 ### 8. Clone repo on VPS
 
 ```bash
-ssh user@your-vps-ip
+ssh root@187.124.160.50
 git clone git@github.com:yourname/ob-live-chat.git /opt/ob-live-chat
 cd /opt/ob-live-chat
 ```
@@ -123,7 +136,7 @@ Fill in all values:
 ```env
 NODE_ENV=production
 PORT=3000
-APP_BASE_URL=https://chat.yourdomain.com
+APP_BASE_URL=https://live-chat.activebrands.cloud
 
 WIDGET_ALLOWED_ORIGINS=https://yourwebsite.com,https://www.yourwebsite.com
 SOCKET_CORS_ORIGIN=https://yourwebsite.com
@@ -152,7 +165,7 @@ cd widget && npm ci && npm run build && cd ..
 docker compose up -d --build
 
 # Verify
-curl https://chat.yourdomain.com/health
+curl https://live-chat.activebrands.cloud/health
 # expected: {"ok":true}
 ```
 
@@ -161,7 +174,7 @@ curl https://chat.yourdomain.com/health
 ## Updating (after pushing changes to GitHub)
 
 ```bash
-ssh user@your-vps-ip
+ssh root@187.124.160.50
 cd /opt/ob-live-chat
 
 # Pull latest code
@@ -174,7 +187,7 @@ cd widget && npm ci && npm run build && cd ..
 docker compose up -d --build backend
 
 # Verify
-curl https://chat.yourdomain.com/health
+curl https://live-chat.activebrands.cloud/health
 ```
 
 > The widget `dist/` is mounted into the backend container via Docker volume,
@@ -189,9 +202,9 @@ Add to every page of your website (e.g. in WordPress footer or `functions.php`):
 
 ```html
 <script>
-  window.__LIVE_CHAT_CONFIG__ = { backendUrl: 'https://chat.yourdomain.com' };
+  window.__LIVE_CHAT_CONFIG__ = { backendUrl: 'https://live-chat.activebrands.cloud' };
 </script>
-<script src="https://chat.yourdomain.com/widget/widget.js" async></script>
+<script src="https://live-chat.activebrands.cloud/widget/widget.js" async></script>
 ```
 
 ---
@@ -220,12 +233,12 @@ docker compose ps
 ## Deployment Checklist
 
 ### Infrastructure
-- [ ] VPS running Ubuntu
+- [x] VPS running Ubuntu (`187.124.160.50`)
 - [ ] Docker installed
 - [ ] Nginx installed
-- [ ] A record `chat.yourdomain.com` → VPS IP
+- [x] A record `live-chat.activebrands.cloud` → `187.124.160.50`
 - [ ] SSL cert issued via Certbot
-- [ ] Nginx proxy config active
+- [ ] Nginx proxy config active (`/etc/nginx/sites-available/ob-live-chat`)
 
 ### Code
 - [ ] GitHub repo created
