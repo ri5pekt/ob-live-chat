@@ -31,6 +31,7 @@ export function createInlineContactCard({ onSubmit, onSkip }) {
   emailInput.className = 'lc-contact-input'
   emailInput.placeholder = 'your@email.com'
   emailInput.maxLength = 255
+  emailInput.dir = 'ltr'
   card.appendChild(emailInput)
 
   const errorMsg = document.createElement('p')

@@ -26,20 +26,15 @@ let contactCardShown = false
 
 export async function initApp(root, onUnreadChange, onChatClosed) {
   _onChatClosed = onChatClosed ?? null
-  console.log('[LiveChat] initApp starting')
   loadFromStorage()
-  console.log('[LiveChat] storage loaded — sessionId:', store.sessionId, 'hasToken:', !!store.visitorToken)
 
   const chatWindow = createChatWindow({
     onClose: handleClose,
     onSend: handleSend,
   })
   root.appendChild(chatWindow)
-  console.log('[LiveChat] chat window DOM created')
-
 
   onNewMessage((message) => {
-    console.log('[LiveChat] new message received:', message)
     appendMessage(message)
     updateTypingVisibility()
     if (!windowOpen) {
@@ -50,13 +45,11 @@ export async function initApp(root, onUnreadChange, onChatClosed) {
   })
 
   onStatusChange((status) => {
-    console.log('[LiveChat] socket status changed:', status)
     setStatus(status)
     store.setState({ status })
   })
 
   onVisitorNameUpdate((name) => {
-    console.log('[LiveChat] visitor name updated via socket:', name)
     store.setState({ visitorName: name })
     saveVisitorName(name)
     rerenderVisitorNames()
@@ -117,7 +110,6 @@ function setContactState(sessionId, state) {
 }
 
 async function initSession() {
-  console.log('[LiveChat] initSession — calling POST /api/chat/session')
   store.setState({ status: 'loading' })
 
   try {
@@ -127,7 +119,6 @@ async function initSession() {
       referrerUrl: document.referrer || undefined,
     })
 
-    console.log('[LiveChat] session ready — sessionId:', res.sessionId)
     store.setState({
       sessionId: res.sessionId,
       visitorToken: res.visitorToken,
@@ -136,16 +127,13 @@ async function initSession() {
     if (res.visitorName) saveVisitorName(res.visitorName)
     saveToStorage(res.sessionId, res.visitorToken)
 
-    console.log('[LiveChat] connecting socket...')
     connectSocket(res.sessionId, res.visitorToken)
   } catch (err) {
-    console.error('[LiveChat] Failed to initialize session:', err)
     store.setState({ status: 'error' })
   }
 }
 
 export async function openChat() {
-  console.log('[LiveChat] openChat called')
   if (!store.sessionId || !store.visitorToken) {
     await initSession()
   }
@@ -170,9 +158,7 @@ export async function openChat() {
   }
 
   try {
-    console.log('[LiveChat] loading message history...')
     const { messages, session } = await fetchMessagesWithRetry(store.sessionId, store.visitorToken)
-    console.log('[LiveChat] loaded', messages.length, 'messages')
 
     if (session?.visitorName && !store.visitorName) {
       store.setState({ visitorName: session.visitorName })
@@ -182,8 +168,7 @@ export async function openChat() {
     store.setMessages(messages)
     renderMessages(messages)
     updateTypingVisibility()
-  } catch (err) {
-    console.error('[LiveChat] Failed to load messages:', err)
+  } catch {
     renderMessages(store.messages)
     updateTypingVisibility()
   }
@@ -195,7 +180,6 @@ async function fetchMessagesWithRetry(sessionId, visitorToken, retries = 1) {
       return await api.getMessages(sessionId, visitorToken)
     } catch (err) {
       if (attempt < retries) {
-        console.warn(`[LiveChat] getMessages attempt ${attempt + 1} failed, retrying in 1.5s...`)
         await new Promise((r) => setTimeout(r, 1500))
       } else {
         throw err
@@ -224,17 +208,14 @@ async function handleContactSubmit({ name, email }) {
       rerenderVisitorNames()
     }
     setContactState(store.sessionId, 'submitted')
-    console.log('[LiveChat] contact details saved')
     return true
-  } catch (err) {
-    console.error('[LiveChat] failed to save contact:', err)
+  } catch {
     return false
   }
 }
 
 function handleContactSkip() {
   if (store.sessionId) setContactState(store.sessionId, 'skipped')
-  console.log('[LiveChat] contact form skipped')
 }
 
 async function handleSend({ text, attachment }) {
@@ -284,8 +265,7 @@ async function handleSend({ text, attachment }) {
       })
       injectContactCard(card)
     }
-  } catch (err) {
-    console.error('[LiveChat] Failed to send message:', err)
+  } catch {
     const tempEl = document.querySelector(`[data-message-id="${tempId}"]`)
     if (tempEl) {
       tempEl.classList.add('lc-message-failed')
