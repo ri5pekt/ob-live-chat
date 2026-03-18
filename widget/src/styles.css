@@ -477,6 +477,7 @@
   width: 16px;
   height: 16px;
   fill: white;
+  transform: scaleX(-1);
 }
 
 /* Attachment preview */
@@ -570,6 +571,11 @@
   outline: none;
   transition: border-color 0.15s, box-shadow 0.15s;
   box-sizing: border-box;
+}
+
+.lc-contact-input[type="email"] {
+  direction: ltr;
+  text-align: left;
 }
 
 .lc-contact-input:focus {
