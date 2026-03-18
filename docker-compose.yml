@@ -20,15 +20,24 @@ services:
     build: ./backend
     restart: unless-stopped
     env_file: .env
-    ports:
-      - "3000:3000"
+    expose:
+      - "3000"
     volumes:
       - uploads_data:/uploads
       - ./widget/dist:/widget-dist:ro
     depends_on:
       postgres:
         condition: service_healthy
+    networks:
+      - default
+      - caddy_net
 
 volumes:
   postgres_data:
   uploads_data:
+
+networks:
+  default:
+  caddy_net:
+    external: true
+    name: ob-inventory_default
