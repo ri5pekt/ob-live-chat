@@ -1,0 +1,17 @@
+{
+  "name": "ob-live-chat-widget",
+  "version": "1.0.0",
+  "description": "ob-live-chat embeddable widget",
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build",
+    "preview": "vite preview"
+  },
+  "dependencies": {
+    "socket.io-client": "^4.8.1"
+  },
+  "devDependencies": {
+    "vite": "^5.4.11",
+    "vite-plugin-css-injected-by-js": "^4.0.1"
+  }
+}

@@ -1,0 +1,29 @@
+# Dependencies
+node_modules/
+backend/node_modules/
+widget/node_modules/
+
+# Build output (rebuilt on server)
+dist/
+widget/dist/
+backend/dist/
+
+# Environment — NEVER commit
+.env
+*.env.local
+*.env.production
+
+# Logs
+*.log
+npm-debug.log*
+
+# Uploads (runtime data)
+uploads/
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Dev-only secrets/notes
+docs/telegram.md
+docs/ngrok.md
